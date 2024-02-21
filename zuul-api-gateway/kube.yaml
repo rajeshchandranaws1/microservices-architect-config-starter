@@ -1,0 +1,47 @@
+  apiVersion: "v1" 
+  kind: "Service"
+  metadata:
+    labels:
+      app: "zulu-api-gateway"
+    name: "zulu"
+  spec:
+    ports:
+    - name: "http"
+      port: 9999
+      targetPort: 9999
+    selector:
+      app: "zulu-api-gateway"
+    type: "NodePort"   
+---  
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: "zulu-api-gateway"
+    labels: 
+      app: zulu
+  spec:
+    replicas: 1
+    selector:
+        matchLabels:
+          app: "zulu-api-gateway"
+    template:
+      metadata:
+        labels:
+          app: zulu-api-gateway
+      spec:
+        containers:
+          - name: "zulu"
+            image: "deekshithsn/zulu"
+            imagePullPolicy: "IfNotPresent"
+            ports:
+              - containerPort: 9999
+        affinity:
+          podAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - react-ui
+              topologyKey: "kubernetes.io/hostname"
